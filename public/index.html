@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Jeu</title>
+    <style>body{margin:0}</style>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
+<script>
+const config = {
+    type: Phaser.AUTO,
+    width: 900,
+    height: 500,
+    backgroundColor: '#87CEEB',
+    physics: {
+        default: 'arcade',
+        arcade: { gravity: { y: 0 }, debug: false }
+    },
+    scene: { preload, create, update }
+};
+
+const game = new Phaser.Game(config);
+
+let player, cursors, enemies;
+let gameOver = false;
+let score = 0;
+let scoreText;
+let spawnDelay = 1200;    // délai initial en ms
+let enemySpeed = 60;      // vitesse initiale des ennemis (px/s)
+const MIN_SPAWN = 300;
+const SPEED_INC = 6;      // augmentation de vitesse par spawn
+const DELAY_DEC = 20;     // réduction du délai par spawn (ms)
+let highscore = 0;
+let highscoreText;
+let bullets;
+let shootKey;
+let lastShot = 0;
+const SHOT_COOLDOWN = 20; // temps entre les tirs en ms
+let lives = 3;
+let livesText;
+let lifePickups;
+function preload() {
+    // vérifie que '1.png' existe dans public ou adapte le chemin
+    this.load.image('mario', '1.png');
+    this.load.image('enemyTex', '2.png');
+    this.load.image('life', '4.png');
+}
+
+function create() {
+    // instructions + sco
+    gameOver = false;
+    score = 0;
+    lives = 3;
+    spawnDelay = 1200;
+    enemySpeed = 60;
+    this.add.text(8, 8, 'Évite les ennemis — flèches pour bouger', { fontSize: '18px', fill: '#000' });
+    scoreText = this.add.text(8, 36, 'Score: 0', { fontSize: '18px', fill: '#000' });
+
+    // joueur
+    player = this.physics.add.sprite(config.width/4, config.height - 80, 'mario');
+    player.setScale(0.15);
+    player.setCollideWorldBounds(true);
+
+    cursors = this.input.keyboard.createCursorKeys();
+
+    // texture runtime pour ennemis
+    const g = this.add.graphics();
+    g.fillStyle(0xff0000, 1);
+    g.fillRect(0, 0, 20, 20);
+    g.generateTexture('enemyTex', 20, 20);
+    g.destroy();
+
+    enemies = this.physics.add.group();
+    // texture runtime pour balles
+    const gb = this.add.graphics();
+    gb.fillStyle(0x000000, 1);
+    gb.fillRect(0, 0, 4, 12);
+    gb.generateTexture('bulletTex', 4, 12);
+    gb.destroy();
+   
+    // bullets group
+    bullets = this.physics.add.group({
+        defaultKey: 'bulletTex',
+        maxSize: 20
+    });
+
+    // overlap bullets -> enemies
+    this.physics.add.overlap(bullets, enemies, (b, e) => {
+        if (b && b.active) b.destroy();
+        if (e && e.active) e.destroy();
+    }, null, this);
+
+    shootKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+    const gl = this.add.graphics();
+    gl.fillStyle(0x00ff00, 1); // vert
+    gl.fillRect(0, 0, 15, 15);
+    gl.generateTexture('life', 15, 15);
+    gl.destroy();
+
+    lifePickups = this.physics.add.group();
+
+    // overlap joueur -> life pickup
+    this.physics.add.overlap(player, lifePickups, (p, life) => {
+        lives++;
+        livesText.setText('Lives: ' + lives);
+        life.destroy();
+    }, null, this);
+
+    // collision -> game over
+    this.physics.add.overlap(player, enemies, onHit, null, this);
+
+    // lance la première spawn après spawnDelay
+    this.time.delayedCall(spawnDelay, spawnEnemy, [], this);
+      // load highscore from localStorage
+    highscore = parseInt(localStorage.getItem('highscore') || '0', 10) || 0;
+    highscoreText = this.add.text(8, 64, 'Highscore: ' + highscore, { fontSize: '18px', fill: '#000' });
+    livesText = this.add.text(8, 92, 'Lives: ' + lives, { fontSize: '18px', fill: '#000' });
+}
+
+function spawnEnemy() {if (gameOver) return;
+
+    // augmenter la vitesse avant de spawn pour qu'elle affecte l'ennemi créé
+    enemySpeed += SPEED_INC;
+    // optionnel : limiter la vitesse max
+    const MAX_ENEMY_SPEED = 800;
+    enemySpeed = Math.min(enemySpeed, MAX_ENEMY_SPEED);
+
+    const x = Phaser.Math.Between(20, config.width - 20);
+    const enemy = enemies.create(x, -30, 'enemyTex');
+
+    // appliquer la vitesse calculée
+    enemy.setVelocityY(enemySpeed);
+    enemy.body.setAllowGravity(false);
+    enemy.setScale(0.2);
+
+    // score = nombre d'ennemis spawnés
+    score++;
+    scoreText.setText('Score: ' + score);
+
+    // réduire le délai de spawn progressivement
+    spawnDelay = Math.max(MIN_SPAWN, spawnDelay - DELAY_DEC);
+
+    // re-planifier le spawn suivant
+    this.time.delayedCall(spawnDelay, spawnEnemy, [], this);
+        if (Phaser.Math.Between(1, 100) <= 20) {
+        const lx = Phaser.Math.Between(20, config.width - 20);
+        const life = lifePickups.create(lx, -30, 'life'); // <-- utilise 'life' et non 'lifeTex'
+        life.setVelocityY(80);
+        life.body.setAllowGravity(false);
+        // life.setScale(0.5); // optionnel : ajuste la taille si nécessaire
+    }
+ // ..
+}
+function shoot(scene) {
+    if (gameOver) return;
+    const now = scene.time.now;
+    if (now - lastShot < SHOT_COOLDOWN) return;
+    lastShot = now;
+
+    const bx = player.x;
+    const by = player.y - 20;
+    const bullet = bullets.get(bx, by, 'bulletTex');
+    if (!bullet) return;
+
+    bullet.setActive(true);
+    bullet.setVisible(true);
+    bullet.body.enable = true;
+    bullet.setVelocityY(-450);
+}
+
+function onHit(playerObj, enemy) {
+    if (gameOver) return;
+    
+    lives--;
+    livesText.setText('Lives: ' + lives);
+    
+    // repositionner le joueur au centre
+    player.x = config.width / 2;
+    player.y = config.height - 80;
+    player.body.setVelocity(0);
+    
+    enemy.destroy();
+    
+    // game over si lives = 0
+    if (lives <= 0) {
+        gameOver = true;
+        
+        if (score > highscore) {
+            highscore = score;
+            localStorage.setItem('highscore', String(highscore));
+            highscoreText.setText('Highscore: ' + highscore);
+        }
+
+        this.add.text(config.width/2, config.height/2 - 30, 'GAME OVER', { fontSize: '48px', fill: '#ff0000' }).setOrigin(0.5);
+        this.add.text(config.width/2, config.height/2 + 10, 'Score: ' + score, { fontSize: '24px', fill: '#000' }).setOrigin(0.5);
+        this.add.text(config.width/2, config.height/2 + 50, 'Appuie sur F5 pour recommencer', { fontSize: '16px', fill: '#000' }).setOrigin(0.5);
+
+        this.input.keyboard.once('keydown-F5', () => {
+            this.scene.restart();
+        });
+    }
+}
+function update() {
+    if (gameOver) return;
+
+    const speed = 300;
+    player.body.setVelocity(0);
+    if (cursors.left.isDown) player.body.setVelocityX(-speed);
+    else if (cursors.right.isDown) player.body.setVelocityX(speed);
+    if (cursors.up.isDown) player.body.setVelocityY(-speed);
+    else if (cursors.down.isDown) player.body.setVelocityY(speed);
+
+    // supprimer ennemis hors écran
+    enemies.children.each((e) => {
+        if (e.y > config.height + 50) e.destroy();
+    });
+     if (Phaser.Input.Keyboard.JustDown(shootKey)) {
+        shoot(this);
+    }
+        lifePickups.children.each((l) => {
+        if (l.y > config.height + 50) l.destroy();
+    });
+    // clean bullets off-screen
+    bullets.children.each((b) => {
+        if (b.y < -20) b.destroy();
+    });
+}
+</script>
+</body>
+</html>

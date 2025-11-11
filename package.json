@@ -1,0 +1,25 @@
+{
+  "name": "jeu-interactif",
+  "version": "1.0.0",
+  "description": "��#\u0000 \u0000J\u0000e\u0000u\u0000-\u0000i\u0000n\u0000t\u0000e\u0000r\u0000a\u0000c\u0000t\u0000i\u0000f\u0000\r\u0000 \u0000",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lessa222/Jeu-interactif.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Lessa222/Jeu-interactif/issues"
+  },
+  "homepage": "https://github.com/Lessa222/Jeu-interactif#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
