@@ -38,18 +38,23 @@ let highscoreText;
 let bullets;
 let shootKey;
 let lastShot = 0;
+let particles;
 const SHOT_COOLDOWN = 20; // temps entre les tirs en ms
 let lives = 3;
 let livesText;
 let lifePickups;
 function preload() {
+    this.load.image('bg', 'background.jpg');
     // vérifie que '1.png' existe dans public ou adapte le chemin
     this.load.image('mario', '1.png');
     this.load.image('enemyTex', '2.png');
     this.load.image('life', '4.png');
+    this.load.image('bulletTex', 'rocket.png');
 }
 
 function create() {
+      const bg = this.add.image(0, 0, 'bg').setOrigin(0, 0);
+      bg.setDisplaySize(config.width, config.height);
     // instructions + sco
     gameOver = false;
     score = 0;
@@ -86,12 +91,30 @@ function create() {
         defaultKey: 'bulletTex',
         maxSize: 20
     });
+    const gp = this.add.graphics();
+    gp.fillStyle(0xffa500, 1); // couleur orange
+    gp.fillCircle(6, 6, 6);
+    gp.generateTexture('particle', 12, 12);
+    gp.destroy();
+
+   
+    particles = this.add.particles('particle');
+    bullets = this.physics.add.group({
+        defaultKey: 'bulletTex',
+        maxSize: 20
+    });
 
     // overlap bullets -> enemies
-    this.physics.add.overlap(bullets, enemies, (b, e) => {
+   this.physics.add.overlap(bullets, enemies, (b, e) => {
         if (b && b.active) b.destroy();
-        if (e && e.active) e.destroy();
+        if (e && e.active) {
+            // émet des particules au point d'impact
+            particles.emitParticleAt(e.x, e.y, 12);
+            e.destroy();
+        }
     }, null, this);
+    
+    
 
     shootKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
     const gl = this.add.graphics();
