@@ -53,6 +53,7 @@ function preload() {
     this.load.image('enemyTex', '2.png');
     this.load.image('life', '4.png');
     this.load.image('bulletTex', 'rocket.png');
+    this.load.audio('shootSound', 'tir.mp3');
 }
 
 function create() {
@@ -73,6 +74,7 @@ function create() {
     player.setCollideWorldBounds(true);
 
     cursors = this.input.keyboard.createCursorKeys();
+    soundShoot = this.sound.add('shootSound');
 
     // texture runtime pour ennemis
     const g = this.add.graphics();
@@ -198,6 +200,7 @@ function shoot(scene) {
     bullet.setVisible(true);
     bullet.body.enable = true;
     bullet.setVelocityY(-450);
+    soundShoot.play();
 }
 
 function onHit(playerObj, enemy) {
