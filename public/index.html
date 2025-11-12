@@ -46,6 +46,8 @@ let lifePickups;
 let powerups;
 let invincible = false;
 let rapidFire = false;
+let asteroids;
+
 function preload() {
     this.load.image('bg', 'background.jpg');
     // vérifie que '1.png' existe dans public ou adapte le chemin
@@ -54,6 +56,8 @@ function preload() {
     this.load.image('life', '4.png');
     this.load.image('bulletTex', 'rocket.png');
     this.load.audio('shootSound', 'tir.mp3');
+    this.load.image('asteroidTex', 'vato.png');
+    this.load.image('powerupTex', 'diamond.png');
 }
 
 function create() {
@@ -137,10 +141,27 @@ function create() {
     powerups = this.physics.add.group();
 
     // overlap joueur -> powerup
-    this.physics.add.overlap(player, powerups, (p, pu) => {
+        this.physics.add.overlap(player, powerups, (p, pu) => {
         activatePowerup(pu.type, this);
         pu.destroy();
     }, null, this);
+        const ga = this.add.graphics();
+    ga.fillStyle(0x808080, 1); // gris
+    ga.fillCircle(12, 12, 12);
+    ga.generateTexture('asteroidTex', 24, 24);
+    ga.destroy();
+
+    asteroids = this.physics.add.group();
+        this.physics.add.overlap(player, asteroids, (p, a) => {
+        // réutilise la logique de collision (perte de vie, game over)
+        onHit(p, a);
+    }, null, this);
+        this.time.addEvent({
+        delay: 10000, // toutes les 10s (ajuste si besoin)
+        callback: spawnAsteroid,
+        callbackScope: this,
+        loop: true
+    });
 }
 
 function spawnEnemy() {if (gameOver) return;
@@ -258,6 +279,18 @@ function activatePowerup(type, scene) {
         });
     }
 }
+function spawnAsteroid() {
+    if (gameOver) return;
+
+    const x = Phaser.Math.Between(20, config.width - 20);
+    const asteroid = asteroids.create(x, -40, 'asteroidTex');
+    asteroid.setVelocityY(Phaser.Math.Between(70, 140));
+    asteroid.body.setAllowGravity(false);
+    asteroid.setScale(Phaser.Math.FloatBetween(0.6, 1.4));
+    asteroid.setImmovable(true);
+    // marque éventuellement pour debug
+    asteroid.isAsteroid = true;
+}
 function update() {
     if (gameOver) return;
 
@@ -280,6 +313,14 @@ function update() {
     });
     // clean bullets off-screen
     bullets.children.each((b) => {
+        if (b.y < -20) b.destroy();
+    });
+      if (asteroids) {
+        asteroids.children.each((a) => {
+            if (a && a.y > config.height + 50) a.destroy();
+        });
+    }
+     bullets.children.each((b) => {
         if (b.y < -20) b.destroy();
     });
     
