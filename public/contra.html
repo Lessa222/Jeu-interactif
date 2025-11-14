@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contra - Jeu de Tir</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(45deg, #0a0a2a, #1a1a4a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            color: white;
+        }
+        #game-container {
+            position: relative;
+            text-align: center;
+        }
+        #game {
+            border: 4px solid #ff0000;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+            display: block;
+            margin: 0 auto;
+        }
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid #ff0000;
+        }
+        #start-screen {
+            color: #fff;
+        }
+        #game-over {
+            color: #ff0000;
+            display: none;
+        }
+        #level-complete {
+            color: #00ff00;
+            display: none;
+        }
+        .blink {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        h1 {
+            color: #ff0000;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <ul>
+        <h3><a href="index.html" style="color: white; text-decoration: none;">jeu avion</a></h3>
+        <h3><a href="tetris.html" style="color: white; text-decoration: none;">tetris</a></h3>
+    </ul>
+    <div id="game-container">
+        <div id="game"></div>
+        
+        <div id="ui">
+            <div>SCORE: <span id="score">000000</span></div>
+            <div>VIES: <span id="lives">3</span></div>
+            <div>ARMES: <span id="weapon">NORMAL</span></div>
+            <div>LEVEL: <span id="level">1</span></div>
+        </div>
+        
+        <div id="controls">
+            <div>← → : DÉPLACER | ESPACE : SAUTER | Z : TIRER | X : CHANGER ARME</div>
+        </div>
+
+        <div id="start-screen" class="screen">
+            <h1>CONTRA</h1>
+            <p style="font-size: 24px; margin: 30px 0;">APPUYEZ SUR ESPACE</p>
+            <p class="blink" style="font-size: 16px;">← → DÉPLACER | ESPACE SAUTER | Z TIRER | X CHANGER ARME</p>
+        </div>
+
+        <div id="game-over" class="screen">
+            <h2>GAME OVER</h2>
+            <p style="font-size: 24px;">SCORE: <span id="final-score">000000</span></p>
+            <p style="font-size: 16px;" class="blink">APPUYEZ SUR R POUR RECOMMENCER</p>
+        </div>
+
+        <div id="level-complete" class="screen">
+            <h2>LEVEL COMPLETE!</h2>
+            <p style="font-size: 16px;" class="blink">PRÉPARATION LEVEL SUIVANT...</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="contra.js"></script>
+</body>
+</html>

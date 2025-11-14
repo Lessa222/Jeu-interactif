@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris avec Phaser</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+        #game {
+            border: 2px solid #fff;
+        }
+        #sidebar {
+            color: white;
+            width: 200px;
+        }
+        .info-panel {
+            background: #333;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        #next-piece {
+            background: #000;
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <ul>
+    <h  3><a href="index.html">jeu avion</a></h3>
+    <h3><a href="contra.html">contra</a></h3>
+    </ul>
+    <div id="game-container">
+        <div id="game"></div>
+        <div id="sidebar">
+            <div class="info-panel">
+                <h3>Score</h3>
+                <div id="score">0</div>
+            </div>
+            <div class="info-panel">
+                <h3>Niveau</h3>
+                <div id="level">1</div>
+            </div>
+            <div class="info-panel">
+                <h3>Lignes</h3>
+                <div id="lines">0</div>
+            </div>
+            <div class="info-panel">
+                <h3>Prochain</h3>
+                <canvas id="next-piece" width="100" height="100"></canvas>
+            </div>
+            <div class="info-panel">
+                <h3>Contrôles</h3>
+                <p>← → : Déplacer</p>
+                <p>↑ : Rotation</p>
+                <p>↓ : Descendre</p>
+                <p>Espace : Chute libre</p>
+                <p>P : Pause</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script src="tetris.js"></script>
+</body>
+</html>
